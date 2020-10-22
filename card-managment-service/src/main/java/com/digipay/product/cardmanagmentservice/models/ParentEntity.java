@@ -18,4 +18,7 @@ public class ParentEntity implements Serializable, Cloneable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    public ParentEntity() {
+    }
 }
