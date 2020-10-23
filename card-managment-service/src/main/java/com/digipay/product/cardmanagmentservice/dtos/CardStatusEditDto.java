@@ -7,17 +7,18 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Setter
 @Getter
 @SuperBuilder
-public class CardStatusEditDto extends CardEditDto {
+public class CardStatusEditDto extends EditDto<Card> {
     private CardStatus cardStatus;
 
     @Override
-    public Card merge(Card card) {
+    public Optional<Card> merge(Card card) {
         if (cardStatus != null)
             card.setCardStatus(cardStatus);
-        return card;
+        return Optional.ofNullable(card);
     }
 }

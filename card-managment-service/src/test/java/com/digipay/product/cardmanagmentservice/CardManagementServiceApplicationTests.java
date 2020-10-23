@@ -1,14 +1,17 @@
 package com.digipay.product.cardmanagmentservice;
 
 import com.digipay.product.cardmanagmentservice.configs.TestAppConfig;
-import com.digipay.product.cardmanagmentservice.dtos.*;
-import com.digipay.product.cardmanagmentservice.exceptions.CardServiceException;
+import com.digipay.product.cardmanagmentservice.dtos.CardDto;
+import com.digipay.product.cardmanagmentservice.dtos.CardOnlinePassEditDto;
+import com.digipay.product.cardmanagmentservice.dtos.CardStatusEditDto;
+import com.digipay.product.cardmanagmentservice.dtos.SearchDto;
 import com.digipay.product.cardmanagmentservice.exceptions.InvalidInputException;
 import com.digipay.product.cardmanagmentservice.models.Card;
 import com.digipay.product.cardmanagmentservice.models.CardStatus;
 import com.digipay.product.cardmanagmentservice.models.User;
 import com.digipay.product.cardmanagmentservice.repositories.UserRepository;
 import com.digipay.product.cardmanagmentservice.setvices.CardService;
+import com.digipay.product.cardmanagmentservice.setvices.CardServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +69,6 @@ class CardManagementServiceApplicationTests {
                 .number(randomCardNumber())
                 .onlinePass("5948763")
                 .vcc2(4256L)
-                .balance(10000000L)
                 .build();
         cardService.add(cardDto_1);
         //-- card 2
@@ -76,7 +78,6 @@ class CardManagementServiceApplicationTests {
                 .number(randomCardNumber())
                 .onlinePass("5948763")
                 .vcc2(4256L)
-                .balance(4555555L)
                 .build();
         cardService.add(cardDto_2);
 
@@ -97,9 +98,8 @@ class CardManagementServiceApplicationTests {
         assertThat(card.getId()).isNotNull().isGreaterThan(0);
         assertThat(card.getExpirationDate()).isEqualTo(cardDto.getExpirationDate());
         assertThat(card.getNumber()).isEqualTo(cardDto.getNumber());
-        assertThat(card.getCardStatus()).isEqualTo(CardStatus.NEW);
+        assertThat(card.getCardStatus()).isEqualTo(CardStatus.ACTIVE);
         assertThat(card.getUser().getId()).isEqualTo(cardDto.getUser().getId());
-        assertThat(card.getCurrentBalance()).isZero();
     }
 
     @Test
@@ -118,25 +118,6 @@ class CardManagementServiceApplicationTests {
                 .withMessageContaining("not-null property references a null or transient value")
                 .withMessageContaining(Card.class.getCanonicalName())
                 .withMessageContaining("user");
-    }
-
-    @Test
-    void add___balance_is_less_then_zero___fail() {
-        User user = userRepository.findByUsername(defaultDatabaseUsername);
-        CardDto cardDto = CardDto.builder()
-                .user(user)
-                .expirationDate(LocalDate.now().plusMonths(12))
-                .number("6037_9940_4512_4563")
-                .onlinePass("5948763")
-                .vcc2(4256L)
-                .balance(-12212L)
-                .build();
-
-        assertThatExceptionOfType(CardServiceException.class)
-                .isThrownBy(() -> {
-                    cardService.add(cardDto);
-                })
-                .withMessageContaining("موجودی نمیتواند کمتر از حداقل (صفر) مقدار باشد");
     }
 
     @Test
@@ -224,7 +205,6 @@ class CardManagementServiceApplicationTests {
                 .number("6037we9940_4512_4563")
                 .onlinePass("5948763")
                 .vcc2(4256L)
-                .balance(159753L)
                 .build();
 
         assertThatExceptionOfType(InvalidInputException.class)
@@ -234,47 +214,6 @@ class CardManagementServiceApplicationTests {
                 .withMessageContaining("مقدار فیلد(های)")
                 .withMessageContaining("شماره کارت")
                 .withMessageContaining("اشتباه است");
-    }
-
-    @Test
-    void edit___change_balance___success() {
-        Card card = commonCardForTests();
-        Long balanceBeforeEdit = card.getCurrentBalance();
-
-        //--- Add
-        CardBalanceEditDto dto = CardBalanceEditDto.builder()
-                .currentBalance(10000L)
-                .operation(CardBalanceEditDto.Operation.ADD)
-                .build();
-        card = cardService.edit(card.getId(), dto);
-
-        assertThat(card.getCurrentBalance()).isNotNull().isEqualTo(balanceBeforeEdit + dto.getCurrentBalance());
-
-        //--- Subtract
-        balanceBeforeEdit = card.getCurrentBalance();
-        dto = CardBalanceEditDto.builder()
-                .currentBalance(10L)
-                .operation(CardBalanceEditDto.Operation.SUBTRACT)
-                .build();
-        card = cardService.edit(card.getId(), dto);
-
-        assertThat(card.getCurrentBalance()).isNotNull().isEqualTo(balanceBeforeEdit - dto.getCurrentBalance());
-    }
-
-    @Test
-    void edit___make_balance_to_be_less_than_zero___fail() {
-        Card card = commonCardForTests();
-        //--- Add
-        CardBalanceEditDto dto = CardBalanceEditDto.builder()
-                .currentBalance(card.getCurrentBalance() + 10)
-                .operation(CardBalanceEditDto.Operation.SUBTRACT)
-                .build();
-
-        assertThatExceptionOfType(CardServiceException.class)
-                .isThrownBy(() -> {
-                    cardService.edit(card.getId(), dto);
-                })
-                .withMessageContaining("موجودی نمیتواند کمتر از حداقل (صفر) مقدار باشد");
     }
 
     @Test
@@ -292,10 +231,10 @@ class CardManagementServiceApplicationTests {
     @Test
     void delete___unused_card___success() {
         Card card = commonCardForTests();
-        int cardSizeBeforeDelete = cardService.list().size();
+        int cardSizeBeforeDelete = cardService.getAll().size();
 
-        cardService.delete(card.getNumber(), card.getUser().getId());
-        assertThat(cardService.list().size()).isLessThan(cardSizeBeforeDelete).isEqualTo(cardSizeBeforeDelete - 1);
+        cardService.delete(card.getId());
+        assertThat(cardService.getAll().size()).isLessThan(cardSizeBeforeDelete).isEqualTo(cardSizeBeforeDelete - 1);
     }
 
     private String randomCardNumber() {
@@ -321,7 +260,6 @@ class CardManagementServiceApplicationTests {
                     .number(randomCardNumber())
                     .onlinePass("5948763")
                     .vcc2((long) threadLocalRandom.nextInt(10000, 90999))
-                    .balance((long) threadLocalRandom.nextInt(1000, 999999))
                     .build();
             Card card1 = cardService.add(cardDto1);
             assertThat(card1.getId()).isNotNull().isGreaterThan(0);
@@ -329,22 +267,8 @@ class CardManagementServiceApplicationTests {
 
         SearchDto searchDto = new SearchDto();
         searchDto.setPageSize(2);
-        Page<Card> paginated = cardService.findPaginated(searchDto);
+        Page<Card> paginated = cardService.find(searchDto);
         assertThat(paginated.getTotalElements()).isGreaterThan(1);
-    }
-
-    @Test
-    void canWithdraw___amount_greater_than_balance___fail() {
-        Card card = commonCardForTests();
-        boolean result = cardService.canWithdraw(card.getNumber(), card.getCurrentBalance() * 10);
-        assertThat(result).isFalse();
-    }
-
-    @Test
-    void canWithdraw___amount_less_than_balance___success() {
-        Card card = commonCardForTests();
-        boolean result = cardService.canWithdraw(card.getNumber(), card.getCurrentBalance() / 10);
-        assertThat(result).isTrue();
     }
 
     @Test
@@ -370,11 +294,9 @@ class CardManagementServiceApplicationTests {
                 .number("6037_9940_4512_4563")
                 .onlinePass("5948763")
                 .vcc2(4256L)
-                .balance(1000000L)
                 .build();
         Card card = cardService.add(cardDto);
         assertThat(card.getId()).isNotNull().isGreaterThan(0);
-        cardService.edit(card.getId(), CardStatusEditDto.builder().cardStatus(CardStatus.ACTIVE).build());
         return card;
     }
 

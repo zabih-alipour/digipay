@@ -31,9 +31,6 @@ public class Card extends ParentEntity {
     @Column(name = "vcc2", updatable = false, nullable = false)
     private Long vcc2;
 
-    @Column(name = "current_balance", nullable = false)
-    private Long currentBalance;
-
     @Column(name = "expiration_date", nullable = false)
 //    @JsonSerialize()                              // TODO: 10/23/20 This field should serialize with a custom Serializer: for support Jalali date conversion
 //    @JsonDeserialize()                            // TODO: 10/23/20 This field should serialize with a custom DeSerializer: for support Jalali date conversion
@@ -58,14 +55,7 @@ public class Card extends ParentEntity {
 
     @PrePersist
     public void prePersist() {
-        this.setCardStatus(CardStatus.NEW);
-        if (this.currentBalance == null) {
-            this.currentBalance = 0L;
-        }
-        setOnlinePass(this.onlinePass);
-    }
-
-    public void setOnlinePass(String onlinePass) {
+        this.setCardStatus(CardStatus.ACTIVE);
         if (this.onlinePass != null) {
             this.onlinePass = BCrypt.hashpw(onlinePass, BCrypt.gensalt(11));
         }

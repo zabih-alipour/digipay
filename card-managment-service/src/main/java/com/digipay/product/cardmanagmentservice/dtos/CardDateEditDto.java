@@ -6,17 +6,18 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Setter
 @Getter
 @SuperBuilder
-public class CardDateEditDto extends CardEditDto {
+public class CardDateEditDto extends EditDto<Card> {
     private LocalDate expirationDate;
 
     @Override
-    public Card merge(Card card) {
+    public Optional<Card> merge(Card card) {
         if (expirationDate != null)
             card.setExpirationDate(expirationDate);
-        return card;
+        return Optional.ofNullable(card);
     }
 }
