@@ -1,8 +1,6 @@
 package com.digipay.product.cardmanagmentservice.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
@@ -19,15 +17,16 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "card", uniqueConstraints = {
         @UniqueConstraint(name = "uq_card_number_of_card", columnNames = "card_number"),
-        @UniqueConstraint(name = "uq_number__vcc2_of_card", columnNames = {"card_number", "vcc2"})
+        @UniqueConstraint(name = "uq_user__card_of_card", columnNames = {"user_id", "card_number"}),
 })
 @SuperBuilder
 public class Card extends ParentEntity {
     @Column(name = "card_number", updatable = false, nullable = false, length = 16)
     private String number;
 
-    @Column(name = "owner_name", nullable = false)
-    private String ownerName;                       // TODO: 10/21/20 This field should reference to user object. temporary implemented as String
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_user_of_card"), nullable = false)
+    private User user;
 
     @Column(name = "vcc2", updatable = false, nullable = false)
     private Long vcc2;
