@@ -24,6 +24,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -238,9 +240,9 @@ class CardManagementServiceApplicationTests {
     }
 
     private String randomCardNumber() {
-
+        List<String> givenList = Arrays.asList("6037", "5022", "9797");
         ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();
-        return "6037" +
+        return givenList.get(threadLocalRandom.nextInt(givenList.size())) +
                 "_" +
                 threadLocalRandom.nextInt(1000, 9999) +
                 "_" +
@@ -299,7 +301,5 @@ class CardManagementServiceApplicationTests {
         assertThat(card.getId()).isNotNull().isGreaterThan(0);
         return card;
     }
-
-
 }
 
