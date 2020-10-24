@@ -10,6 +10,20 @@ services:
       - "3306:3306"
     networks:
       springboot-mysql-network:
+  rabbitmq:
+    image: rabbitmq
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: alipour
+      RABBITMQ_DEFAULT_PASS: alipour
+      RABBITMQ_DEFAULT_VHOST: notification-service
+      QUEUE_NAME: notification-queue
+      EXCHANGE_NAME: notification-exchange
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      springboot-mysql-network:
 
   card_management:
     restart: on-failure

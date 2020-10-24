@@ -11,5 +11,6 @@
 
     <modules>
         <module>card-managment-service</module>
+        <module>notification-service</module>
     </modules>
 </project>

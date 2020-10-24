@@ -39,7 +39,10 @@ public class CardexServiceImpl extends ParentServiceImpl<Cardex, Long> implement
                 .amount(amount)
                 .transferStatus(isSuccess ? TransferStatus.SUCCESS : TransferStatus.FAIL)
                 .build();
-        return repository.save(cardex);
+        Cardex cardex1 = repository.save(cardex);
+
+        // TODO: 10/24/20 Call rabbitMQ for send notification to sender user
+        return cardex1;
     }
 
     @Override
