@@ -1,0 +1,56 @@
+version: "3.8"
+services:
+  mysql:
+    image: mysql
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: alipour
+      MYSQL_DATABASE: card_management
+    ports:
+      - "3306:3306"
+    networks:
+      springboot-mysql-network:
+  rabbitmq:
+    image: rabbitmq
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: alipour
+      RABBITMQ_DEFAULT_PASS: alipour
+      RABBITMQ_DEFAULT_VHOST: notification-service
+      QUEUE_NAME: notification-queue
+      EXCHANGE_NAME: notification-exchange
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      springboot-mysql-network:
+
+  card_management:
+    restart: on-failure
+    container_name: card_management
+    links:
+      - mysql
+    build:
+      context: ./card-managment-service
+      dockerfile: Dockerfile
+    command: bash -c "
+      mvn clean install -DskipTests
+      && cp target/card-management-service*.jar app.jar
+      && java -jar app.jar
+     "
+    ports:
+      - "8081:8081"
+    volumes:
+      - "${HOME}/.m2/:/root/.m2/"
+    depends_on:
+      - mysql
+    environment:
+      DATABASE_HOST: mysql
+      DATABASE_USER: root
+      DATABASE_PASSWORD: alipour
+      DATABASE_NAME: card_management
+      DATABASE_PORT: 3306
+    networks:
+      springboot-mysql-network:
+networks:
+  springboot-mysql-network:
