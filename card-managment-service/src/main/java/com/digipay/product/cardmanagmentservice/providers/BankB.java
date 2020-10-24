@@ -1,7 +1,7 @@
 package com.digipay.product.cardmanagmentservice.providers;
 
-public class BankB extends BankServiceProvider{
+public class BankB extends BankServiceProvider {
     public BankB() {
-        super("https://bank_b.com/api/transfer");
+        super("https://second-payment-provider/cards/pay");
     }
 }

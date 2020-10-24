@@ -7,14 +7,12 @@ import com.digipay.product.cardmanagmentservice.models.ParentEntity;
 import com.digipay.product.cardmanagmentservice.repositories.ParentRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
-@Transactional
 public abstract class ParentServiceImpl<T extends ParentEntity, K extends Serializable> implements ParentService<T, K> {
     protected final ParentRepository<T, K> repository;
 
@@ -24,7 +22,7 @@ public abstract class ParentServiceImpl<T extends ParentEntity, K extends Serial
 
     @Override
     public T add(ParentDto<T> dto) {
-        Optional<T> entity = dto.getEntity();
+        Optional<T> entity = dto.entityInstance();
         return entity
                 .map(this::validate)
                 .map(repository::save)
@@ -36,7 +34,8 @@ public abstract class ParentServiceImpl<T extends ParentEntity, K extends Serial
     }
 
     @Override
-    public T edit(K id, EditDto<T> dto) {
+    @Transactional
+    public T edit(K id, EditDto<T> dto) throws Exception {
         T entity = repository.getOne(id);
         return dto.merge(entity)
                 .map(this::validate)
@@ -50,7 +49,7 @@ public abstract class ParentServiceImpl<T extends ParentEntity, K extends Serial
     }
 
     @Override
-    public void delete(K id) {
+    public void delete(K id) throws Exception {
         repository.deleteById(id);
     }
 

@@ -9,4 +9,5 @@ import java.io.Serializable;
 
 @NoRepositoryBean
 public interface ParentRepository<T extends ParentEntity, K extends Serializable> extends JpaRepository<T, K>, JpaSpecificationExecutor<T> {
+
 }

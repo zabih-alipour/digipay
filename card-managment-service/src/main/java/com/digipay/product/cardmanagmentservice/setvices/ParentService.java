@@ -13,11 +13,11 @@ public interface ParentService<T extends ParentEntity, K extends Serializable> {
 
     T add(ParentDto<T> dto);
 
-    T edit(K id, EditDto<T> dto);
+    T edit(K id, EditDto<T> dto) throws Exception;
 
     T get(K id);
 
-    void delete(K id);
+    void delete(K id) throws Exception;
 
     List<T> getAll();
 

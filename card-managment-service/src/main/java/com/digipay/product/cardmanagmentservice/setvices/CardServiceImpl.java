@@ -1,13 +1,13 @@
 package com.digipay.product.cardmanagmentservice.setvices;
 
-import com.digipay.product.cardmanagmentservice.dtos.ParentDto;
 import com.digipay.product.cardmanagmentservice.dtos.SearchDto;
+import com.digipay.product.cardmanagmentservice.dtos.TransitionDto;
 import com.digipay.product.cardmanagmentservice.exceptions.InvalidInputException;
 import com.digipay.product.cardmanagmentservice.models.Card;
+import com.digipay.product.cardmanagmentservice.models.Cardex;
+import com.digipay.product.cardmanagmentservice.patterns.BankStrategyPattern;
 import com.digipay.product.cardmanagmentservice.repositories.CardRepository;
 import com.digipay.product.cardmanagmentservice.repositories.CardSpecification;
-import com.digipay.product.cardmanagmentservice.repositories.CardexRepository;
-import com.digipay.product.cardmanagmentservice.repositories.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,13 +22,16 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class CardServiceImpl extends ParentServiceImpl<Card, Long> implements CardService {
-    private final UserRepository userRepository;
-    private final CardexRepository cardexRepository;
 
-    public CardServiceImpl(CardRepository repository, UserRepository userRepository, CardexRepository cardexRepository) {
+    private final CardexService cardexService;
+    private final BankStrategyPattern bankStrategyPattern;
+
+    public CardServiceImpl(CardRepository repository,
+                           CardexService cardexService,
+                           BankStrategyPattern bankStrategyPattern) {
         super(repository);
-        this.userRepository = userRepository;
-        this.cardexRepository = cardexRepository;
+        this.cardexService = cardexService;
+        this.bankStrategyPattern = bankStrategyPattern;
     }
 
     @Override
@@ -54,13 +57,22 @@ public class CardServiceImpl extends ParentServiceImpl<Card, Long> implements Ca
     protected Card validate(Card card) {
         if (card.getNumber() != null) {
             String number = card.getNumber().replace("_", "");
-            if (number.isEmpty() || !number.matches("\\d+")) {
+            if (number.isEmpty() || number.length() > 16 || !number.matches("\\d+")) {
                 throw new InvalidInputException("شماره کارت");
             }
         }
-
         return card;
     }
 
+    @Override
+    public boolean transfer(TransitionDto dto) {
 
+        // کاربری که کاربه کارت میکند در سیستم هست و از کارتها موجود در سیستم که متعلق به خودش هست استفاده میکند
+        Optional<Card> card = ((CardRepository) repository).findByNumber(dto.getSourceCardNumber());
+        return card.map(p -> {
+            boolean bankResponse = bankStrategyPattern.getProvider(p.getNumber()).doPayment(dto);
+            Cardex cardex = cardexService.transfer(p, dto.getDistCardNumber(), dto.getAmount(), bankResponse);
+            return cardex != null;
+        }).orElse(Boolean.FALSE);
+    }
 }

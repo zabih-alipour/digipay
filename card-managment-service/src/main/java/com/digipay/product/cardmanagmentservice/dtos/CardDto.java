@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 @Setter
@@ -14,20 +13,20 @@ import java.util.Optional;
 @SuperBuilder
 public class CardDto extends ParentDto<Card> {
     private String number;
+    private String name;
     private User user;
-    private Long vcc2;
-    private LocalDate expirationDate;
-    private String onlinePass;
+
+
+    public CardDto() {
+    }
 
     @Override
-    public Optional<Card> getEntity() {
+    public Optional<Card> entityInstance() {
         return Optional.ofNullable(
                 Card.builder()
                         .number(this.number)
+                        .name(Optional.ofNullable(this.name).orElse(this.number))
                         .user(user)
-                        .expirationDate(this.expirationDate)
-                        .onlinePass(this.onlinePass)
-                        .vcc2(this.vcc2)
                         .build());
     }
 }

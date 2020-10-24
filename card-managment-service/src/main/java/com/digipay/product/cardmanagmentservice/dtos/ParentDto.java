@@ -15,7 +15,7 @@ public class ParentDto<T extends ParentEntity> {
     public ParentDto() {
     }
 
-    public Optional<T> getEntity() {
+    public Optional<T> entityInstance() {
         return Optional.empty();
     }
 }
