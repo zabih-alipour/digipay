@@ -16,7 +16,6 @@ public class CardDto extends ParentDto<Card> {
     private String name;
     private User user;
 
-
     public CardDto() {
     }
 

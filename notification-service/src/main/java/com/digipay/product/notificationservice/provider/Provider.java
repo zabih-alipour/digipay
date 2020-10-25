@@ -9,7 +9,7 @@ import org.springframework.web.client.RestTemplate;
 public abstract class Provider {
     public final String url;
     private final ProviderType providerType;
-    private RestTemplate restTemplate;
+    protected RestTemplate restTemplate;
 
     public Provider(String url, ProviderType providerType, RestTemplate restTemplate) {
         this.url = url;

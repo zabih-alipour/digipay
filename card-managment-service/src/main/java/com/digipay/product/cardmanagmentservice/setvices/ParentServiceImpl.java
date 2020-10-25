@@ -13,6 +13,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
+@Transactional
 public abstract class ParentServiceImpl<T extends ParentEntity, K extends Serializable> implements ParentService<T, K> {
     protected final ParentRepository<T, K> repository;
 
@@ -43,6 +44,7 @@ public abstract class ParentServiceImpl<T extends ParentEntity, K extends Serial
                 .orElseThrow(RuntimeException::new);
     }
 
+    @Transactional
     @Override
     public T get(K id) {
         return repository.getOne(id);

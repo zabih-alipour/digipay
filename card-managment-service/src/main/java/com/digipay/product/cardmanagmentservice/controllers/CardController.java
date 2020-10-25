@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/card_management/cards")
 public class CardController {
@@ -26,7 +28,7 @@ public class CardController {
 
     @GetMapping
     public ResponseEntity<Page<Card>> get(@RequestBody(required = false) SearchDto searchDto) {
-        return ResponseEntity.ok(cardService.find(searchDto));
+        return ResponseEntity.ok(cardService.find(Optional.ofNullable(searchDto).orElseGet(SearchDto::new)));
     }
 
     @PostMapping

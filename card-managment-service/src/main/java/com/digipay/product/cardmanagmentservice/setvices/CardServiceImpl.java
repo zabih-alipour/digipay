@@ -8,6 +8,7 @@ import com.digipay.product.cardmanagmentservice.models.Cardex;
 import com.digipay.product.cardmanagmentservice.patterns.BankStrategyPattern;
 import com.digipay.product.cardmanagmentservice.repositories.CardRepository;
 import com.digipay.product.cardmanagmentservice.repositories.CardSpecification;
+import com.digipay.product.cardmanagmentservice.sender.Sender;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -25,13 +26,15 @@ public class CardServiceImpl extends ParentServiceImpl<Card, Long> implements Ca
 
     private final CardexService cardexService;
     private final BankStrategyPattern bankStrategyPattern;
+    private final Sender notifySender;
 
     public CardServiceImpl(CardRepository repository,
                            CardexService cardexService,
-                           BankStrategyPattern bankStrategyPattern) {
+                           BankStrategyPattern bankStrategyPattern, Sender notifySender) {
         super(repository);
         this.cardexService = cardexService;
         this.bankStrategyPattern = bankStrategyPattern;
+        this.notifySender = notifySender;
     }
 
     @Override
@@ -71,6 +74,10 @@ public class CardServiceImpl extends ParentServiceImpl<Card, Long> implements Ca
         Optional<Card> card = ((CardRepository) repository).findByNumber(dto.getSourceCardNumber());
         return card.map(p -> {
             boolean bankResponse = bankStrategyPattern.getProvider(p.getNumber()).doPayment(dto);
+            if (bankResponse) {
+                String text = String.format(MESSAGE_TEMPLATE, dto.getAmount(), dto.getSourceCardNumber(), dto.getDistCardNumber());
+                notifySender.asSMS(p.getUser().getMobile(), text);
+            }
             Cardex cardex = cardexService.transfer(p, dto.getDistCardNumber(), dto.getAmount(), bankResponse);
             return cardex != null;
         }).orElse(Boolean.FALSE);

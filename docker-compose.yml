@@ -25,7 +25,32 @@ services:
     networks:
       springboot-mysql-network:
 
-  card_management:
+  notification_service:
+    restart: on-failure
+    container_name: notification_service
+    links:
+      - rabbitmq
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    command: bash -c "
+      mvn clean install -DskipTests
+      && cp target/notification-service*.jar app.jar
+      && java -jar app.jar
+      "
+    ports:
+      - "8083:8083"
+    volumes:
+      - "${HOME}/.m2/:/root/.m2/"
+    depends_on:
+      - rabbitmq
+    environment:
+      QUEUE_NAME: notification-queue
+      EXCHANGE_NAME: notification-exchange
+    networks:
+      springboot-mysql-network:
+
+  card_management_service:
     restart: on-failure
     container_name: card_management
     links:
@@ -50,6 +75,8 @@ services:
       DATABASE_PASSWORD: alipour
       DATABASE_NAME: card_management
       DATABASE_PORT: 3306
+      QUEUE_NAME: notification-queue
+      EXCHANGE_NAME: notification-exchange
     networks:
       springboot-mysql-network:
 networks:
