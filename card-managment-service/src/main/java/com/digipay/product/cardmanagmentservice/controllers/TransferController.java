@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/transfers")
 public class TransferController {
 
-    private CardService cardService;
+    private final CardService cardService;
 
     public TransferController(CardService cardService) {
         this.cardService = cardService;

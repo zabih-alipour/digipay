@@ -5,11 +5,14 @@ import com.digipay.product.notificationservice.models.ProviderType;
 import com.digipay.product.notificationservice.patterns.ProviderPattern;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 
 @Component
+@RabbitListener(queues = "${rabbitmq.queue-name}")
 public class Receiver {
     private final ObjectMapper mapper;
     private final ProviderPattern providerPattern;
@@ -21,8 +24,10 @@ public class Receiver {
         this.providerPattern = providerPattern;
     }
 
-    public void receiveMessage(String message) throws JsonProcessingException {
-        MessageModel model = mapper.readValue(message, MessageModel.class);
+    //    @RabbitHandler
+    public void receiveMessage(byte[] message) throws JsonProcessingException {
+        String msg = new String(message, StandardCharsets.UTF_8);
+        MessageModel model = mapper.readValue(msg, MessageModel.class);
         providerPattern.getProvider(ProviderType.getInstance(model.getType()))
                 .ifPresent(provider -> provider.send(model.getPayload()));
 

@@ -13,7 +13,7 @@ public class BankServiceProvider {
                 .source(dto.getSourceCardNumber())
                 .dest(dto.getDistCardNumber())
                 .cvv2(dto.getCvv2())
-                .expDate(dto.getExpirationDate().toString())
+                .expDate(dto.getExpirationDate())
                 .pin(dto.getOnlinePass())
                 .amount(String.valueOf(dto.getAmount()))
                 .build();

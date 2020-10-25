@@ -67,4 +67,9 @@ public class Cardex extends ParentEntity {
 
     public Cardex() {
     }
+
+    @PrePersist
+    public void prePersist() {
+        this.createDate = LocalDateTime.now();
+    }
 }

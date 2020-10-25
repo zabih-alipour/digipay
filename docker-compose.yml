@@ -14,9 +14,6 @@ services:
     image: rabbitmq
     container_name: rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: alipour
-      RABBITMQ_DEFAULT_PASS: alipour
-      RABBITMQ_DEFAULT_VHOST: notification-service
       QUEUE_NAME: notification-queue
       EXCHANGE_NAME: notification-exchange
     ports:
@@ -47,12 +44,16 @@ services:
     environment:
       QUEUE_NAME: notification-queue
       EXCHANGE_NAME: notification-exchange
+      spring.rabbitmq.host: rabbit
+      spring.rabbitmq.port: 5672
+      spring.rabbitmq.username: guest
+      spring.rabbitmq.password: guest
     networks:
       springboot-mysql-network:
 
   card_management_service:
     restart: on-failure
-    container_name: card_management
+    container_name: card_management_service
     links:
       - mysql
     build:
@@ -77,6 +78,10 @@ services:
       DATABASE_PORT: 3306
       QUEUE_NAME: notification-queue
       EXCHANGE_NAME: notification-exchange
+      spring.rabbitmq.host: notification-service
+      spring.rabbitmq.port: 5672
+      spring.rabbitmq.username: alipour
+      spring.rabbitmq.password: alipour
     networks:
       springboot-mysql-network:
 networks:
