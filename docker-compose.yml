@@ -44,10 +44,10 @@ services:
     environment:
       QUEUE_NAME: notification-queue
       EXCHANGE_NAME: notification-exchange
-      spring.rabbitmq.host: rabbit
-      spring.rabbitmq.port: 5672
-      spring.rabbitmq.username: guest
-      spring.rabbitmq.password: guest
+      RABBIT_HOST: rabbitmq
+      RABBIT_PORT: 5672
+      RABBIT_USERNAME: guest
+      RABBIT_PASSWORD: guest
     networks:
       springboot-mysql-network:
 
@@ -56,6 +56,7 @@ services:
     container_name: card_management_service
     links:
       - mysql
+      - rabbitmq
     build:
       context: ./card-managment-service
       dockerfile: Dockerfile
@@ -70,6 +71,7 @@ services:
       - "${HOME}/.m2/:/root/.m2/"
     depends_on:
       - mysql
+      - rabbitmq
     environment:
       DATABASE_HOST: mysql
       DATABASE_USER: root
@@ -78,10 +80,10 @@ services:
       DATABASE_PORT: 3306
       QUEUE_NAME: notification-queue
       EXCHANGE_NAME: notification-exchange
-      spring.rabbitmq.host: notification-service
-      spring.rabbitmq.port: 5672
-      spring.rabbitmq.username: alipour
-      spring.rabbitmq.password: alipour
+      RABBIT_HOST: rabbitmq
+      RABBIT_PORT: 5672
+      RABBIT_USERNAME: guest
+      RABBIT_PASSWORD: guest
     networks:
       springboot-mysql-network:
 networks:
